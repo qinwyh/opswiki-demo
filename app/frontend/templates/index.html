@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpsWiki – 代码理解与问答</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════ Phase 1: Repo Picker ═══════════ -->
+<div id="pickerScreen" class="picker-screen">
+  <div class="picker-inner">
+
+    <header class="picker-header">
+      <div class="picker-logo">⚡ OpsWiki</div>
+      <p class="picker-tagline">本地代码仓库理解与智能问答</p>
+    </header>
+
+    <section class="picker-card">
+      <div class="picker-section-head">
+        <h2>已索引的仓库</h2>
+        <button class="icon-btn" onclick="loadRepoList()" title="刷新列表">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.42"/></svg>
+        </button>
+      </div>
+      <div id="repoGrid" class="repo-grid">
+        <div class="repo-grid-placeholder"><div class="spinner"></div><span>加载中…</span></div>
+      </div>
+    </section>
+
+    <section class="picker-card import-card">
+      <h2>导入新仓库</h2>
+      <div class="import-row">
+        <input type="text" id="newRepoPath" class="import-input"
+               placeholder="输入本地仓库绝对路径，例如 C:\projects\myapp"
+               onkeydown="if(event.key==='Enter') importNewRepo()" />
+        <button class="btn-primary" id="importBtn" onclick="importNewRepo()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          建立索引
+        </button>
+      </div>
+      <div id="importStatus" class="import-status"></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ═══════════ Phase 2: Chat App ═══════════ -->
+<div id="appScreen" style="display:none" class="app-screen">
+  <div id="app">
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-logo">⚡ OpsWiki</div>
+        <button class="btn-switch-repo" onclick="backToPicker()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          切换仓库
+        </button>
+      </div>
+
+      <div class="repo-info-card">
+        <div class="repo-info-name" id="sidebarRepoName">—</div>
+        <div class="repo-info-meta" id="sidebarRepoMeta"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">文件导航</div>
+        <div id="fileTree" class="file-tree"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">示例问题</div>
+        <div class="example-list">
+          <div class="example-q" onclick="fillQuestion(this)">这个项目的整体架构是什么？</div>
+          <div class="example-q" onclick="fillQuestion(this)">主要的入口函数在哪里？</div>
+          <div class="example-q" onclick="fillQuestion(this)">请生成核心模块调用时序图</div>
+          <div class="example-q" onclick="fillQuestion(this)">有哪些核心数据结构？</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Chat -->
+    <main id="mainArea">
+      <div id="chatPlaceholder" class="chat-placeholder">
+        <div class="ph-icon">💬</div>
+        <div class="ph-title">针对 <span id="placeholderRepoName" class="ph-repo"></span> 提问</div>
+        <div class="ph-hint">选择左侧示例问题，或直接在下方输入</div>
+      </div>
+      <div id="chatHistory"></div>
+      <div id="inputArea">
+        <div class="input-box">
+          <textarea id="questionInput"
+                    placeholder="输入问题… (Enter 发送，Shift+Enter 换行)"
+                    rows="1"
+                    onkeydown="handleInputKey(event)"
+                    oninput="autoResize(this)"></textarea>
+          <button id="askBtn" class="send-btn" onclick="askQuestion()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Citations Panel -->
+    <aside id="citationsPanel">
+      <div class="citations-header">
+        <span class="citations-title">📎 代码引用</span>
+        <span id="citationsCount" class="badge" style="display:none"></span>
+      </div>
+      <div id="citationsHint" class="citations-hint">发问后，相关代码引用将显示在此处</div>
+      <div id="citationsList"></div>
+    </aside>
+
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
